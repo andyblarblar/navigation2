@@ -98,7 +98,7 @@ protected:
   RecoveryTest() {SetUp();}
   ~RecoveryTest() {}
 
-  void SetUp()
+  void SetUp() override
   {
     node_lifecycle_ =
       std::make_shared<rclcpp_lifecycle::LifecycleNode>(

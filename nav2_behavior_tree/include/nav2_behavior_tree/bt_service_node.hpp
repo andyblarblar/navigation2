@@ -162,7 +162,7 @@ public:
     auto remaining = server_timeout_ - elapsed;
 
     if (remaining > std::chrono::milliseconds(0)) {
-      auto timeout = remaining > bt_loop_duration_ ? bt_loop_duration_ : remaining;
+      //auto timeout = remaining > bt_loop_duration_ ? bt_loop_duration_ : remaining;
 
       rclcpp::FutureReturnCode rc;
       rc = callback_group_executor_.spin_until_future_complete(future_result_, server_timeout_);

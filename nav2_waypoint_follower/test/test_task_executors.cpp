@@ -61,7 +61,7 @@ TEST(WaypointFollowerTest, InputAtWaypoint)
   auto pub = node->create_publisher<std_msgs::msg::Empty>("input_at_waypoint/input", 1);
   pub->on_activate();
   auto publish_message =
-    [&, this]() -> void
+    [&]() -> void
     {
       rclcpp::Rate(5).sleep();
       auto msg = std::make_unique<std_msgs::msg::Empty>();
@@ -94,7 +94,7 @@ TEST(WaypointFollowerTest, PhotoAtWaypoint)
   auto pub = node->create_publisher<sensor_msgs::msg::Image>("/camer/color/image_raw", 1);
   pub->on_activate();
   auto publish_message =
-    [&, this]() -> void
+    [&]() -> void
     {
       rclcpp::Rate(5).sleep();
       auto msg = std::make_unique<sensor_msgs::msg::Image>();
