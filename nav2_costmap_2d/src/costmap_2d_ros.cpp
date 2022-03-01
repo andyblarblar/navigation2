@@ -40,7 +40,10 @@
 
 #include <memory>
 #include <chrono>
+#include <rclcpp/rate.hpp>
 #include <string>
+#include <tf2/buffer_core.h>
+#include <tf2/time.h>
 #include <vector>
 #include <utility>
 
@@ -137,7 +140,7 @@ Costmap2DROS::on_configure(const rclcpp_lifecycle::State & /*state*/)
   }
 
   // Create the transform-related objects
-  tf_buffer_ = std::make_shared<tf2_ros::Buffer>(rclcpp_node_->get_clock());
+  tf_buffer_ = std::make_shared<tf2_ros::Buffer>(rclcpp_node_->get_clock()); //TODO duration can be changed here
   auto timer_interface = std::make_shared<tf2_ros::CreateTimerROS>(
     rclcpp_node_->get_node_base_interface(),
     rclcpp_node_->get_node_timers_interface());

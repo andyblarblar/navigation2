@@ -16,6 +16,9 @@
 
 #include <fstream>
 #include <memory>
+#include <rclcpp/create_timer.hpp>
+#include <rclcpp/duration.hpp>
+#include <rclcpp/logging.hpp>
 #include <streambuf>
 #include <string>
 #include <utility>
@@ -164,6 +167,14 @@ WaypointFollower::followWaypoints()
   uint32_t goal_index = 0;
   bool new_goal = true;
 
+  // Create timer that causes us to resend the same waypoint every 8 seconds to prevent the timestamp from falling out of tf buffer in costmap
+  bool should_resend_waypoint = false;
+  auto timer = rclcpp::create_timer(this, this->get_clock(), rclcpp::Duration::from_seconds(3),
+    [&](){
+      should_resend_waypoint = true; // We data race here
+    } 
+  );
+
   while (rclcpp::ok()) {
     // Check if asked to stop processing action
     if (action_server_->is_cancel_requested()) {
@@ -187,6 +198,22 @@ WaypointFollower::followWaypoints()
     if (new_goal) {
       new_goal = false;
       ClientT::Goal client_goal;
+      client_goal.pose = goal->poses[goal_index];
+
+      auto send_goal_options = rclcpp_action::Client<ClientT>::SendGoalOptions();
+      send_goal_options.result_callback =
+        std::bind(&WaypointFollower::resultCallback, this, std::placeholders::_1);
+      send_goal_options.goal_response_callback =
+        std::bind(&WaypointFollower::goalResponseCallback, this, std::placeholders::_1);
+      future_goal_handle_ =
+        nav_to_pose_client_->async_send_goal(client_goal, send_goal_options);
+      current_goal_status_ = ActionStatus::PROCESSING;
+    } else if (should_resend_waypoint) {
+
+      RCLCPP_INFO(this->get_logger(), "Resending waypoint %i before tf stales", goal_index);
+
+      should_resend_waypoint = false;
+      ClientT::Goal client_goal; //TODO I think this code just preempts, see if we can cancel
       client_goal.pose = goal->poses[goal_index];
 
       auto send_goal_options = rclcpp_action::Client<ClientT>::SendGoalOptions();

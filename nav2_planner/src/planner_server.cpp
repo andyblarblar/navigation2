@@ -20,6 +20,7 @@
 #include <limits>
 #include <iterator>
 #include <memory>
+#include <rclcpp/logging.hpp>
 #include <string>
 #include <vector>
 #include <utility>
@@ -275,7 +276,7 @@ bool PlannerServer::getStartPose(
 }
 
 template<typename T>
-bool PlannerServer::transformPosesToGlobalFrame(
+bool PlannerServer::transformPosesToGlobalFrame( // TODO issue here
   std::unique_ptr<nav2_util::SimpleActionServer<T>> & action_server,
   geometry_msgs::msg::PoseStamped & curr_start,
   geometry_msgs::msg::PoseStamped & curr_goal)
@@ -361,6 +362,7 @@ PlannerServer::computePlanThroughPoses()
       }
       curr_goal = goal->goals[i];
 
+      
       // Transform them into the global frame
       if (!transformPosesToGlobalFrame(action_server_poses_, curr_start, curr_goal)) {
         return;
@@ -429,8 +431,10 @@ PlannerServer::computePlan()
       return;
     }
 
+    RCLCPP_INFO(this->get_logger(), "start goal has time of: %d", start.header.stamp.sec); //We dont provide a start pose, so it takes the current robots pose instead
     // Transform them into the global frame
     geometry_msgs::msg::PoseStamped goal_pose = goal->goal;
+    RCLCPP_INFO(this->get_logger(), "goal time has time of: %d", goal_pose.header.stamp.sec); //TODO it looks like this time is always the same. Try replacing its header with the start goals
     if (!transformPosesToGlobalFrame(action_server_pose_, start, goal_pose)) {
       return;
     }
